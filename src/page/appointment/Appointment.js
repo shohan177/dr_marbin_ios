@@ -201,6 +201,7 @@ const NewAppoinment = ({ data, action, handeSubmit }) => {
       <TextInput
         style={styles.textInput}
         placeholder="Last Name"
+        placeholderTextColor={"gray"}
         value={formData.lastName}
         onChangeText={(value) => action("lastName", value)}
       />
@@ -212,29 +213,32 @@ const NewAppoinment = ({ data, action, handeSubmit }) => {
       <TextInput
         style={styles.textInput}
         placeholder="Email"
+        placeholderTextColor={"gray"}
         value={formData.email}
         onChangeText={(value) => action("email", value)}
       />
       {formDataError.email && formDataError.action && (
         <View style={{ width: "100%", paddingLeft: 10, paddingTop: 5 }}>
-          <Text style={{ color: "red" }}>Email Address Required !</Text>
+          <Text style={{ color: "red" }}>Valid Email Address Required !</Text>
         </View>
       )}
       <TextInput
         style={styles.textInput}
         placeholder="Phone"
+        placeholderTextColor={"gray"}
         value={formData.phone}
         keyboardType="name-phone-pad"
         onChangeText={(value) => action("phone", value)}
       />
       {formDataError.phone && formDataError.action && (
         <View style={{ width: "100%", paddingLeft: 10, paddingTop: 5 }}>
-          <Text style={{ color: "red" }}>Phone Number Required !</Text>
+          <Text style={{ color: "red" }}>Valid Phone Number Required !</Text>
         </View>
       )}
       <TextInput
         style={[styles.textInput, { height: 100 }]}
         placeholder="Reason"
+        placeholderTextColor={"gray"}
         value={formData.reason}
         numberOfLines={5}
         multiline
@@ -296,13 +300,14 @@ const AppoinmentStatus = ({ data, action, handeSubmit }) => {
       <TextInput
         style={styles.textInput}
         placeholder="Phone"
+        placeholderTextColor={"gray"}
         value={formData.phone}
         keyboardType="name-phone-pad"
         onChangeText={(value) => action("phone", value)}
       />
       {formDataError.phone && formDataError.action && (
         <View style={{ width: "100%", paddingLeft: 10, paddingTop: 5 }}>
-          <Text style={{ color: "red" }}> Phone Number Required !</Text>
+          <Text style={{ color: "red" }}>Valid Phone Number Required !</Text>
         </View>
       )}
 

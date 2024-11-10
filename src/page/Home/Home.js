@@ -14,7 +14,6 @@ import { Linking } from "react-native";
 import EventCard from "../../component/EventCard";
 import AppUrl from "../../restApi/AppUrl";
 import useSendRequest from "../../customeHelper/useSendRequest";
-import Slider from "../../component/Slider";
 import CustomeHead from "../../component/CustomeHead";
 import CustomYoutubePlayer from "../../component/CustomYoutubePlayer";
 import BottomCard from "../../component/BottomCard";
