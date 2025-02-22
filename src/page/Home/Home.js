@@ -22,6 +22,7 @@ import "../../utility/i18n";
 import { useTranslation } from "react-i18next";
 import BottomSheetCustom from "../../component/BottomSheetCustom";
 import { useNavigation } from "@react-navigation/native";
+import Container from "../../component/container/Container";
 
 const Home = () => {
   const { language, setLanguage } = useContext(RootContext);
@@ -97,7 +98,7 @@ const Home = () => {
   };
 
   return (
-    <>
+    <Container>
       <CustomeHead isBack={false} />
       <ScrollView style={styles.container}>
         <View style={{ marginBottom: 20, paddingTop: 20 }}>
@@ -122,7 +123,7 @@ const Home = () => {
             </Text>
           </View>
           <View>
-            <TouchableOpacity
+            {/* <TouchableOpacity
               onPress={() => navigation.navigate("appoinments")}
               activeOpacity={0.7}
               style={{
@@ -143,7 +144,7 @@ const Home = () => {
               >
                 {t("MakeAppoinment")}
               </Animatable.Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
         <View
@@ -423,7 +424,7 @@ const Home = () => {
           <Text style={{ color: "#000" }}>{sortText?.text}</Text>
         </View>
       </BottomSheetCustom>
-    </>
+    </Container>
   );
 };
 

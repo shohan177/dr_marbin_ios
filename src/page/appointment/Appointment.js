@@ -1,29 +1,29 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import CustomeHead from "../../component/CustomeHead";
 import { TextInput } from "react-native-gesture-handler";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import useSendRequest from "../../customeHelper/useSendRequest";
 import AppUrl from "../../restApi/AppUrl";
 import { useToast } from "react-native-toast-notifications";
 import SuccessSheet from "../../component/SuccessSheet";
+import ModalComponent from "../../component/ModalComponent";
+import Container from "../../component/container/Container";
+import Loader from "../../component/Loader";
+import { RootContext } from "../../context/RootContextProvider";
 
 const errorStatus = {
-  firstName: true,
-  lastName: true,
-  phone: true,
-  email: true,
-  reason: true,
+  note: true,
+  title: true,
+  date: false,
   action: false,
 };
 
 const defaultFormData = {
-  firstName: "",
-  lastName: "",
-  email: "",
-  phone: "",
-  reason: "",
-  appointmentStatus: "Pending",
+  date: "",
+  note: "",
+  title: "",
+  slot: "",
 };
 
 const Appointment = () => {
@@ -31,122 +31,65 @@ const Appointment = () => {
   const toast = useToast();
   const [formData, setFormData] = useState(defaultFormData);
   const [formDataError, setFormDataError] = useState(errorStatus);
-  const [isStatus, setIsStatus] = useState(false);
   const [successModal, setSuccessModal] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
 
   const { handelPostData } = useSendRequest();
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  const phone = /^\+?[0-9]\d{1,14}$/;
+  const { loading } = useContext(RootContext);
 
   const handleChange = (field, value) => {
     setFormData((prevFormData) => ({
       ...prevFormData,
       [field]: value,
     }));
-
-    if (field === "email") {
-      setFormDataError((prevFormData) => ({
-        ...prevFormData,
-        email: !emailRegex.test(value),
-      }));
-      return;
-    } else if (field === "phone") {
-      setFormDataError((prevFormData) => ({
-        ...prevFormData,
-        phone: !phone.test(value),
-      }));
-      return;
-    }
-
     setFormDataError((prevFormData) => ({
       ...prevFormData,
-
       [field]: value.length < 0,
     }));
   };
 
+  /**
+   *appoinment submit
+   */
   const handeSubmit = async () => {
-    if (
-      formDataError.firstName ||
-      formDataError.phone ||
-      formDataError.reason ||
-      formDataError.lastName ||
-      formDataError.email
-    ) {
+    if (formDataError.note || formDataError.title || formDataError.slot) {
       setFormDataError((prevFormData) => ({
         ...prevFormData,
         action: true,
       }));
     } else {
       try {
-        const postData = await handelPostData(AppUrl.postAppoinment, formData);
-        console.log("data is ready", postData);
-        postData && setSuccessModal(true);
-        postData && setFormData(defaultFormData);
-      } catch (error) {}
-    }
-  };
+        const data = {
+          type: "Appoinment",
+          title: formData?.title,
+          description: formData?.note,
+          date: formData?.date + "/" + formData?.slot,
+        };
 
-  const checkAppoinment = async () => {
-    if (formDataError.phone) {
-      setFormDataError((prevFormData) => ({
-        ...prevFormData,
-        action: true,
-      }));
-    } else {
-      try {
-        const appoinmentStatus = await handelPostData(
-          AppUrl.checkAppoinment + formData.phone
-        );
-        appoinmentStatus && setStatusOpen(true);
+        const postData = await handelPostData(AppUrl.postAppoinment, data);
+
+        if (postData) {
+          setSuccessModal(true);
+          setFormData(defaultFormData);
+          setFormDataError(errorStatus);
+        }
       } catch (error) {}
     }
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <Container>
+      {loading && <Loader />}
       <CustomeHead />
 
-      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <TouchableOpacity
-          onPress={() => {
-            setFormDataError(errorStatus);
-            setIsStatus((prev) => !prev);
-            setFormData(defaultFormData);
-          }}
-          style={isStatus ? styles.topButton : styles.topButtonActive}
-        >
-          <Text style={styles.textStyle}>Make Appoinment</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => {
-            setIsStatus((prev) => !prev);
-            setFormDataError(errorStatus);
-            setFormData(defaultFormData);
-          }}
-          style={!isStatus ? styles.topButton : styles.topButtonActive}
-        >
-          <Text style={styles.textStyle}>Your Appoinment</Text>
-        </TouchableOpacity>
-      </View>
-
-      {!isStatus ? (
-        <NewAppoinment
-          data={{ formData, setFormData, formDataError, setFormDataError }}
-          action={handleChange}
-          handeSubmit={handeSubmit}
-        />
-      ) : (
-        <AppoinmentStatus
-          data={{ formData, setFormData, formDataError, setFormDataError }}
-          action={handleChange}
-          handeSubmit={checkAppoinment}
-        />
-      )}
+      <NewAppoinment
+        data={{ formData, setFormData, formDataError, setFormDataError }}
+        action={handleChange}
+        handeSubmit={handeSubmit}
+      />
 
       <SuccessSheet
-        setIsVisible={setSuccessModal}
+        setIsVisible={() => navigation.navigate("Tabs")}
         isVisible={successModal}
         title="Done"
       >
@@ -162,15 +105,67 @@ const Appointment = () => {
           Appointment received Successfully. Your Appointment on review
         </Text>
       </SuccessSheet>
-    </View>
+    </Container>
   );
 };
 
 export default Appointment;
 
 const NewAppoinment = ({ data, action, handeSubmit }) => {
-  const { formData, formDataError } = data;
+  const { formData, formDataError, setFormData, setFormDataError } = data;
+  const [openModal, setOpenModal] = useState(false);
   const navigation = useNavigation();
+  const [openslot, setOpenslot] = useState(false);
+  const route = useRoute();
+
+  useEffect(() => {
+    if (route?.params) {
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        ["slot"]: route?.params.slot,
+        ["date"]: route?.params.date,
+      }));
+    }
+  }, [route]);
+
+  const formatTime = (hour) => {
+    const period = hour >= 12 ? "PM" : "AM";
+    const formattedHour = hour % 12 === 0 ? 12 : hour % 12;
+    return `${formattedHour}:00 ${period}`;
+  };
+
+  const generateTimeSlots = () => {
+    const startHour = 8; // Start at 8:00 AM
+    const totalSlots = 10; // Total 10 slots
+    const duration = 1; // Each slot is 1 hour
+
+    return Array.from({ length: totalSlots }, (_, index) => {
+      const start = startHour + index * duration;
+      const end = start + duration;
+      return {
+        id: index.toString(),
+        label: `${formatTime(start)} - ${formatTime(end)}`,
+      };
+    });
+  };
+
+  const generateNextFiveDays = () => {
+    return Array.from({ length: 6 }, (_, index) => {
+      const date = new Date();
+      date.setDate(date.getDate() + index + 1); // Start from tomorrow
+
+      const formattedDate = date
+        .toLocaleDateString("en-GB") // Format: DD/MM/YYYY
+        .replace(/\//g, "-"); // Replace slashes with dashes
+
+      return {
+        id: index.toString(),
+        date: formattedDate, // Format: DD-MM-YYYY
+        day: date.toLocaleDateString("en-US", { weekday: "long" }), // Full weekday name
+      };
+    });
+  };
+
   return (
     <View
       style={{
@@ -187,64 +182,46 @@ const NewAppoinment = ({ data, action, handeSubmit }) => {
         Make your Appointment
       </Text>
 
-      <TextInput
-        style={styles.textInput}
-        placeholder="First Name"
-        value={formData.firstName}
-        onChangeText={(value) => action("firstName", value)}
-      />
-      {formDataError.firstName && formDataError.action && (
+      <Text
+        onPress={() => {
+          setOpenslot(false);
+          setOpenModal(true);
+        }}
+        style={[styles.textInput, { textAlign: "center", paddingTop: 10 }]}
+      >
+        {formData.date === ""
+          ? "Select Slot"
+          : formData.date + " (" + formData.slot + ")"}
+      </Text>
+      {formDataError.slot && formDataError.action && (
         <View style={{ width: "100%", paddingLeft: 10, paddingTop: 5 }}>
           <Text style={{ color: "red" }}>Fild Required !</Text>
         </View>
       )}
+
       <TextInput
         style={styles.textInput}
-        placeholder="Last Name"
+        placeholder="Subject"
         placeholderTextColor={"gray"}
-        value={formData.lastName}
-        onChangeText={(value) => action("lastName", value)}
+        value={formData.title}
+        onChangeText={(value) => action("title", value)}
       />
-      {formDataError.lastName && formDataError.action && (
+      {formDataError.title && formDataError.action && (
         <View style={{ width: "100%", paddingLeft: 10, paddingTop: 5 }}>
           <Text style={{ color: "red" }}>Fild Required !</Text>
         </View>
       )}
+
       <TextInput
-        style={styles.textInput}
-        placeholder="Email"
+        style={[styles.textInput, { height: 250 }]}
+        placeholder="Note"
         placeholderTextColor={"gray"}
-        value={formData.email}
-        onChangeText={(value) => action("email", value)}
-      />
-      {formDataError.email && formDataError.action && (
-        <View style={{ width: "100%", paddingLeft: 10, paddingTop: 5 }}>
-          <Text style={{ color: "red" }}>Valid Email Address Required !</Text>
-        </View>
-      )}
-      <TextInput
-        style={styles.textInput}
-        placeholder="Phone"
-        placeholderTextColor={"gray"}
-        value={formData.phone}
-        keyboardType="name-phone-pad"
-        onChangeText={(value) => action("phone", value)}
-      />
-      {formDataError.phone && formDataError.action && (
-        <View style={{ width: "100%", paddingLeft: 10, paddingTop: 5 }}>
-          <Text style={{ color: "red" }}>Valid Phone Number Required !</Text>
-        </View>
-      )}
-      <TextInput
-        style={[styles.textInput, { height: 100 }]}
-        placeholder="Reason"
-        placeholderTextColor={"gray"}
-        value={formData.reason}
-        numberOfLines={5}
+        value={formData.note}
+        numberOfLines={10}
         multiline
-        onChangeText={(value) => action("reason", value)}
+        onChangeText={(value) => action("note", value)}
       />
-      {formDataError.reason && formDataError.action && (
+      {formDataError.note && formDataError.action && (
         <View style={{ width: "100%", paddingLeft: 10, paddingTop: 5 }}>
           <Text style={{ color: "red" }}>Fild Required !</Text>
         </View>
@@ -275,67 +252,84 @@ const NewAppoinment = ({ data, action, handeSubmit }) => {
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
-  );
-};
 
-const AppoinmentStatus = ({ data, action, handeSubmit }) => {
-  const navigation = useNavigation();
-  const { formData, formDataError } = data;
-  return (
-    <View
-      style={{
-        flex: 1,
-        padding: 16,
-        justifyContent: "flex-start",
-        alignItems: "center",
-        backgroundColor: "#fff",
-        borderTopWidth: 1,
-        borderColor: "#8080808a",
-      }}
-    >
-      <Text style={{ fontSize: 16, color: "#011560" }}>
-        Check You Appointment Status
-      </Text>
-      <TextInput
-        style={styles.textInput}
-        placeholder="Phone"
-        placeholderTextColor={"gray"}
-        value={formData.phone}
-        keyboardType="name-phone-pad"
-        onChangeText={(value) => action("phone", value)}
-      />
-      {formDataError.phone && formDataError.action && (
-        <View style={{ width: "100%", paddingLeft: 10, paddingTop: 5 }}>
-          <Text style={{ color: "red" }}>Valid Phone Number Required !</Text>
-        </View>
-      )}
-
-      <View
-        style={{
-          width: "100%",
-          flexDirection: "row",
-          justifyContent: "space-between",
-          marginTop: 20,
+      <ModalComponent
+        title={`Select ${openslot ? "Time Slot" : "Date"}`}
+        isVisible={openModal}
+        onClose={() => {
+          setOpenModal(false);
         }}
       >
-        <TouchableOpacity
-          style={styles.btn}
-          onPress={() => navigation.goBack()}
+        <View
+          style={{
+            width: "100%",
+            flexDirection: "row",
+            flexWrap: "wrap",
+            justifyContent: "space-between",
+            marginVertical: 20,
+          }}
         >
-          <Text style={{ color: "#011560", fontSize: 15, fontWeight: "600" }}>
-            back
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.btn, { backgroundColor: "#011560" }]}
-          onPress={handeSubmit}
-        >
-          <Text style={{ color: "#fff", fontSize: 15, fontWeight: "600" }}>
-            Check
-          </Text>
-        </TouchableOpacity>
-      </View>
+          {openslot ? (
+            <>
+              {generateTimeSlots().map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={{
+                    width: 150,
+                    padding: 6,
+                    borderWidth: 1,
+                    borderColor: "#004cff29",
+                    margin: 3,
+                    borderRadius: 5,
+                    backgroundColor: "#d9d9d968",
+                  }}
+                  onPress={() => {
+                    setOpenModal(false);
+                    setFormData((prevFormData) => ({
+                      ...prevFormData,
+                      ["slot"]: item.label,
+                    }));
+
+                    setFormDataError((prevFormData) => ({
+                      ...prevFormData,
+                      ["slot"]: false,
+                    }));
+                  }}
+                >
+                  <Text>{item.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </>
+          ) : (
+            <>
+              {generateNextFiveDays().map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={{
+                    width: 150,
+                    padding: 6,
+                    margin: 3,
+                    // borderBlockColor: "#bababa",
+                    // borderWidth: 1,
+                    borderRadius: 5,
+                    backgroundColor: "#0015fa25",
+                  }}
+                  onPress={() => {
+                    setOpenslot(true);
+                    setFormData((prevFormData) => ({
+                      ...prevFormData,
+                      ["date"]: item.date + "/" + item.day,
+                    }));
+                  }}
+                >
+                  <Text style={{ color: "black" }}>{item.date}</Text>
+                  <Text style={{ color: "gray" }}>{item.day}</Text>
+                </TouchableOpacity>
+              ))}
+            </>
+          )}
+        </View>
+      </ModalComponent>
     </View>
   );
 };
@@ -349,6 +343,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderColor: "#80808073",
     marginTop: 24,
+    color: "black",
   },
   btn: {
     width: "49%",

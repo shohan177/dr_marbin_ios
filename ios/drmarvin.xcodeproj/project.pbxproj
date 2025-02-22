@@ -481,7 +481,7 @@
 				ENABLE_BITCODE = NO;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				INFOPLIST_FILE = drmarvin/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = DrMarvin;
+				INFOPLIST_KEY_CFBundleDisplayName = Elamigodetodosandpueblo;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -492,7 +492,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.ios.app.drmarvin;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ios.app.elamigodetodosandpueblo;
 				PRODUCT_NAME = drmarvin;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -510,7 +510,7 @@
 				DEVELOPMENT_TEAM = NMZ2FFTK42;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				INFOPLIST_FILE = drmarvin/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = DrMarvin;
+				INFOPLIST_KEY_CFBundleDisplayName = Elamigodetodosandpueblo;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -521,7 +521,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.ios.app.drmarvin;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ios.app.elamigodetodosandpueblo;
 				PRODUCT_NAME = drmarvin;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";

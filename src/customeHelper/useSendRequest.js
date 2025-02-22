@@ -1,105 +1,134 @@
-import axios from 'axios';
-import React, {useState} from 'react';
-import {useToast} from 'react-native-toast-notifications';
-import Toast from 'react-native-simple-toast';
+import React, { useContext, useState } from "react";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Toast from "react-native-simple-toast";
+import { Keyboard } from "react-native";
+import { RootContext } from "../context/RootContextProvider";
 
 const useSendRequest = () => {
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [response, setResponse] = useState([]);
-  const toast = useToast();
+  const { setIsLogin, loading, setLoading } = useContext(RootContext);
 
-  let axiosConfig = {
-    headers: {
-      headers: {
-        'Content-Type': 'application/json;charset=UTF-8',
-        'Access-Control-Allow-Origin': '*',
-        // Authorization: `Bearer ${userToken}`,
-        enctype: 'multipart/form-data',
-      },
-    },
+  const handelError = (error) => {
+    try {
+      if (axios.isAxiosError(error)) {
+        console.log("Status Code:", error.response?.status);
+        console.log(
+          "Error Message:",
+          error.response?.data?.message || error.message
+        );
+
+        if (error.response?.status === 401) {
+          Toast.show(error.response?.data?.message || error.message, 1);
+          setIsLogin(false);
+        }
+      } else {
+        console.log("Unexpected Error:", error);
+      }
+    } catch (error) {
+      console.log("Error handling failed:", error);
+      Toast.show("Check Your Internet", 1, {
+        backgroundColor: "#0000",
+      });
+    }
   };
-  /**
-   * get request sent
-   */
-  const handelGetData = async (url = null) => {
+
+  const handelGetData = async (url, isLoading = true) => {
+    console.log("hit url: ", url);
     setLoading(true);
+    setError(null);
+    const token = (await AsyncStorage.getItem("authToken")) || "";
 
     if (url) {
       try {
-        const response = await axios.get(url, axiosConfig);
-        // console.log('custome hook data____', response.data);
+        const response = await axios.get(url, {
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            Authorization: `Bearer ${token}`,
+            enctype: "multipart/form-data",
+          },
+        });
         setLoading(false);
         return response.data;
       } catch (error) {
-        if (error.response) {
-          // Server responded with a status other than 200 range
-          console.error('Server error:', error.response.data);
-        } else if (error.request) {
-          // Request was made but no response received
-
-          toast.show('Please check your internet connection !');
-
-          console.error(
-            'Please check your internet connection !',
-            error.request,
-          );
-        } else {
-          // Something happened in setting up the request
-          console.error('Error setting up request:', error.message);
-        }
         setLoading(false);
-        // throw error;
+        handelError(error);
       }
+    } else {
+      setLoading(false);
     }
   };
-  const handelPostData = async (url = null, data) => {
+
+  const handelDeleteData = async (url, isLoading = true) => {
+    console.log("hit url: ", url);
+    setLoading(true);
+    setError(null);
+    const userInfo = await AsyncStorage.getItem("authInfo");
+    const token = userInfo ? JSON.parse(userInfo).jwtToken : "";
+
     if (url) {
       try {
-        const response = await axios.post(url, data, axiosConfig);
-        console.log('custome hook data____', response.data);
-        return response;
+        const response = await axios.delete(url, {
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            Authorization: `Bearer ${token}`,
+            enctype: "multipart/form-data",
+          },
+        });
+        setLoading(false);
+        return response.data;
       } catch (error) {
-        if (axios.isAxiosError(error)) {
-          console.log('Error Data:', error.response?.data.message);
-          Toast.show(error.response?.data.message, 1);
-        } else {
-          console.log('Unexpected Error:', error);
-        }
+        handelError(error);
       }
+    } else {
+      setLoading(false);
     }
   };
 
-  const formatDate = dateString => {
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const monthIndex = date.getMonth();
-    const day = date.getDate();
-    const formattedDate = `${months[monthIndex]} ${day}, ${year}`;
-    return formattedDate;
+  const handelPostData = async (url, data) => {
+    Keyboard.dismiss();
+    console.log("hit url: ", url);
+    console.log("url data", data);
+    setLoading(true);
+    setError(null);
+    const token = (await AsyncStorage.getItem("authToken")) || "";
+
+    console.log("token", token);
+
+    if (url) {
+      try {
+        const response = await axios.post(url, data, {
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            Authorization: `Bearer ${token}`,
+            enctype: "application/json",
+          },
+        });
+        setLoading(false);
+        return response;
+      } catch (error) {
+        setLoading(false);
+        handelError(error);
+      }
+    }
+    setLoading(false);
+  };
+
+  const redirectTologin = () => {
+    setIsLogin(false);
+    navigate(navigationString.LOGIN);
   };
 
   return {
     handelGetData,
     handelPostData,
+    handelDeleteData,
     loading,
     error,
-    response,
-    formatDate,
+    redirectTologin,
   };
 };
 

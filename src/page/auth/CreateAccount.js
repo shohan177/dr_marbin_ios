@@ -15,6 +15,10 @@ import {
 } from "react-native";
 import Feather from "react-native-vector-icons/Feather";
 import { RootContext } from "../../context/RootContextProvider";
+import useSendRequest from "../../customeHelper/useSendRequest";
+import AppUrl from "../../restApi/AppUrl";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Loader from "../../component/Loader";
 
 const CreateAccount = () => {
   const [username, setUsername] = useState("");
@@ -23,9 +27,10 @@ const CreateAccount = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const navigation = useNavigation();
-  const { isLogin, setIsLogin } = useContext(RootContext);
+  const { setUserInfo, isLogin, setIsLogin, loading } = useContext(RootContext);
+  const { handelPostData } = useSendRequest();
 
-  const handleCreateAccount = () => {
+  const handleCreateAccount = async () => {
     // Simple validation
     if (
       username.trim() === "" ||
@@ -47,9 +52,19 @@ const CreateAccount = () => {
       return;
     }
 
-    // Handle create account logic here
-    Alert.alert("Success", `Account created for ${username}`);
-    setIsLogin(true);
+    const response = await handelPostData(AppUrl.Signup, {
+      name: username,
+      email: email,
+      password: password,
+    });
+
+    if (response) {
+      const { token, user } = response.data;
+      await AsyncStorage.setItem("authToken", token);
+      await AsyncStorage.setItem("userInfo", JSON.stringify(user));
+      setUserInfo(user);
+      setIsLogin(true);
+    }
   };
 
   const validateEmail = (email) => {
@@ -58,72 +73,75 @@ const CreateAccount = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Text style={styles.title}>Create Account</Text>
-        <Text style={{ marginBottom: 20, textAlign: "center" }}>
-          Create an account to make appointments and check your appointment
-          status
-        </Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Username"
-          value={username}
-          onChangeText={setUsername}
-          autoCapitalize="none"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
-        <View style={styles.passwordContainer}>
+    <>
+      {loading && <Loader />}
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          <Text style={styles.title}>Create Account</Text>
+          <Text style={{ marginBottom: 20, textAlign: "center" }}>
+            Create an account to make appointments and check your appointment
+            status
+          </Text>
           <TextInput
-            style={[styles.input, { flex: 1 }]}
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
+            style={styles.input}
+            placeholder="Username"
+            value={username}
+            onChangeText={setUsername}
+            autoCapitalize="none"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={[styles.input, { flex: 1 }]}
+              placeholder="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!isPasswordVisible}
+            />
+            <TouchableOpacity
+              style={styles.showButton}
+              onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+            >
+              <Text style={styles.showButtonText}>
+                {!isPasswordVisible ? (
+                  <Feather name="eye" size={20} color={"#808080"} />
+                ) : (
+                  <Feather name="eye-off" size={20} color={"#808080"} />
+                )}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <TextInput
+            style={styles.input}
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
             secureTextEntry={!isPasswordVisible}
           />
+          <TouchableOpacity style={styles.button} onPress={handleCreateAccount}>
+            <Text style={styles.buttonText}>Create Account</Text>
+          </TouchableOpacity>
           <TouchableOpacity
-            style={styles.showButton}
-            onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+            onPress={() => navigation.navigate("Auth")}
+            style={{ marginTop: 20 }}
           >
-            <Text style={styles.showButtonText}>
-              {!isPasswordVisible ? (
-                <Feather name="eye" size={20} color={"#808080"} />
-              ) : (
-                <Feather name="eye-off" size={20} color={"#808080"} />
-              )}
+            <Text style={{ color: "#011560" }}>
+              Already have an account? Login
             </Text>
           </TouchableOpacity>
-        </View>
-        <TextInput
-          style={styles.input}
-          placeholder="Confirm Password"
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          secureTextEntry={!isPasswordVisible}
-        />
-        <TouchableOpacity style={styles.button} onPress={handleCreateAccount}>
-          <Text style={styles.buttonText}>Create Account</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("Auth")}
-          style={{ marginTop: 20 }}
-        >
-          <Text style={{ color: "#011560" }}>
-            Already have an account? Login
-          </Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </>
   );
 };
 

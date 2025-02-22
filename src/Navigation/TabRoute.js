@@ -9,6 +9,8 @@ import "../utility/i18n";
 import { useTranslation } from "react-i18next";
 import { RootContext } from "../context/RootContextProvider";
 import Dashboard from "../page/dashboard/Dashboard";
+import Home from "../page/Home/Home";
+import Profile from "../page/profile/Profile";
 
 const Tabbutton = (props) => {
   const { t, i18n } = useTranslation();
@@ -69,21 +71,22 @@ export default function Routes() {
         }}
       />
       <Tab.Screen
-        name="About"
-        component={About}
+        name="marvin"
+        component={Home}
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <AntDesign name="user" size={25} color="#900" />
+            <AntDesign name="infocirlceo" size={25} color="#900" />
           ),
           tabBarButton: (props) => (
             <Tabbutton
               {...props}
-              icon="user"
+              icon="infocirlceo"
               header={language == "es" ? "Acerca de" : "About"}
             />
           ),
         }}
       />
+
       <Tab.Screen
         name="Gallery"
         component={Gallery}
@@ -96,6 +99,23 @@ export default function Routes() {
               {...props}
               icon="picture"
               header={language == "es" ? "Galería" : "Gallery"}
+            />
+          ),
+        }}
+      />
+
+      <Tab.Screen
+        name="About"
+        component={Profile}
+        options={{
+          tabBarIcon: ({ color, focused }) => (
+            <AntDesign name="user" size={25} color="#900" />
+          ),
+          tabBarButton: (props) => (
+            <Tabbutton
+              {...props}
+              icon="user"
+              header={language == "es" ? "Acerca de" : "About"}
             />
           ),
         }}

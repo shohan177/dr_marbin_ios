@@ -13,6 +13,7 @@ import AppUrl from "../../restApi/AppUrl";
 import Loader from "../../component/Loader";
 import "../../utility/i18n";
 import { useTranslation } from "react-i18next";
+import Container from "../../component/container/Container";
 
 const Blog = () => {
   const { t, i18n } = useTranslation();
@@ -29,7 +30,7 @@ const Blog = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <Container>
       {loading && <Loader />}
       <CustomeHead title="Blogs" />
       <ScrollView>
@@ -55,7 +56,7 @@ const Blog = () => {
           </View>
         </View>
       </ScrollView>
-    </View>
+    </Container>
   );
 };
 

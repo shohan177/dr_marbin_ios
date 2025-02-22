@@ -1,21 +1,29 @@
-import React, {useState, useRef, useCallback, useEffect} from 'react';
-import {View, FlatList, Text, TouchableOpacity, StyleSheet} from 'react-native';
-import YoutubePlayer from 'react-native-youtube-iframe';
+import React, { useState, useRef, useCallback, useEffect } from "react";
+import {
+  View,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
+import YoutubePlayer from "react-native-youtube-iframe";
 
-export const VideoPlayer = ({index, focusedIndex, item}) => {
+export const VideoPlayer = ({ index, focusedIndex, item }) => {
   const [playing, setPlaying] = useState(false);
 
-  let parts = item?.href.split('/');
+  console.log("url", item);
+
+  let parts = item?.split("/");
   let videoId = parts.slice(-1)[0];
 
-  const onStateChange = useCallback(state => {
-    if (state === 'ended') {
+  const onStateChange = useCallback((state) => {
+    if (state === "ended") {
       setPlaying(false);
     }
   }, []);
 
   const togglePlaying = useCallback(() => {
-    setPlaying(prev => !prev);
+    setPlaying((prev) => !prev);
   }, []);
 
   useEffect(() => {
@@ -25,7 +33,7 @@ export const VideoPlayer = ({index, focusedIndex, item}) => {
   return (
     <YoutubePlayer
       height={230}
-      width={'100%'}
+      width={"100%"}
       play={playing}
       videoId={videoId}
       onChangeState={onStateChange}
@@ -34,38 +42,39 @@ export const VideoPlayer = ({index, focusedIndex, item}) => {
 };
 
 const data = [
-  {id: '1', title: 'Item 1'},
-  {id: '1', title: 'Item 1'},
-  {id: '1', title: 'Item 1'},
-  {id: '1', title: 'Item 1'},
-  {id: '1', title: 'Item 1'},
-  {id: '1', title: 'Item 1'},
-  {id: '1', title: 'Item 1'},
-  {id: '1', title: 'Item 1'},
-  {id: '1', title: 'Item 1'},
+  { id: "1", title: "Item 1" },
+  { id: "1", title: "Item 1" },
+  { id: "1", title: "Item 1" },
+  { id: "1", title: "Item 1" },
+  { id: "1", title: "Item 1" },
+  { id: "1", title: "Item 1" },
+  { id: "1", title: "Item 1" },
+  { id: "1", title: "Item 1" },
+  { id: "1", title: "Item 1" },
 ];
 
-const FlatListCom = ({dataArray}) => {
+const FlatListCom = ({ dataArray }) => {
   const [focusedIndex, setFocusedIndex] = useState(null);
   const flatListRef = useRef(null);
 
-  const handleFocus = index => {
+  const handleFocus = (index) => {
     setFocusedIndex(index);
-    flatListRef.current.scrollToIndex({animated: true, index: index});
+    flatListRef.current.scrollToIndex({ animated: true, index: index });
   };
 
-  // useEffect(() => {
-  //   focusedIndex === index ? setPlaying(true) : setPlaying(true);
-  // }, [focusedIndex]);
-
-  const renderItem = ({item, index}) => (
+  const renderItem = ({ item, index }) => (
     <TouchableOpacity onPress={() => handleFocus(index)}>
       <View
         style={[
           styles.itemContainer,
           focusedIndex === index && styles.focusedItem,
-        ]}>
-        <VideoPlayer index={index} focusedIndex={focusedIndex} item={item} />
+        ]}
+      >
+        <VideoPlayer
+          index={index}
+          focusedIndex={focusedIndex}
+          item={item?.url}
+        />
       </View>
     </TouchableOpacity>
   );
@@ -75,7 +84,7 @@ const FlatListCom = ({dataArray}) => {
       ref={flatListRef}
       data={dataArray}
       renderItem={renderItem}
-      keyExtractor={item => item.id}
+      keyExtractor={(item) => item.id}
       extraData={focusedIndex}
     />
   );
@@ -84,14 +93,14 @@ const FlatListCom = ({dataArray}) => {
 const styles = StyleSheet.create({
   itemContainer: {
     padding: 5,
-    backgroundColor: '#fff',
-    borderBottomColor: '#ccc',
+    backgroundColor: "#fff",
+    borderBottomColor: "#ccc",
   },
   focusedItem: {
-    backgroundColor: '#0000005b',
+    backgroundColor: "#0000005b",
   },
   itemText: {
-    color: '#000',
+    color: "#000",
   },
 });
 

@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useEffect, useState } from "react";
 
 export const RootContext = createContext(null);
@@ -8,7 +9,28 @@ const RootContextProvider = (props) => {
   const [timer, setTimer] = useState(null);
   const [appSetting, setAppSetting] = useState(null);
   const [language, setLanguage] = useState("es");
-  const [isLogin, setIsLogin] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
+  const [userInfo, setUserInfo] = useState();
+  const [loading, setLoading] = useState();
+
+  useEffect(() => {
+    handelIslogin();
+  }, []);
+
+  const handelIslogin = async () => {
+    const userInfo = await AsyncStorage.getItem("userInfo");
+    const UserInfoData = userInfo ? JSON.parse(userInfo) : null;
+    const token = await AsyncStorage.getItem("authToken");
+    if (UserInfoData) {
+      setUserInfo(UserInfoData);
+    }
+
+    if (token) {
+      setIsLogin(true);
+    } else {
+      setIsLogin(false);
+    }
+  };
 
   const value = {
     isIdol,
@@ -18,6 +40,10 @@ const RootContextProvider = (props) => {
     setLanguage,
     isLogin,
     setIsLogin,
+    userInfo,
+    setUserInfo,
+    loading,
+    setLoading,
     // languageStatus: [language, setLanguage],
   };
 
